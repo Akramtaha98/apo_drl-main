@@ -103,6 +103,20 @@ def run_seed(method_name, seed, episodes, n_devices, max_steps, out_dir, device)
         w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
         w.writeheader(); w.writerows(rows)
     print(f"  Saved -> {path}")
+
+    # Save model checkpoint for held-out evaluation (evaluate.py)
+    if is_drl and hasattr(agent, "online"):
+        ckpt_dir = os.path.join(out_dir, "checkpoints")
+        os.makedirs(ckpt_dir, exist_ok=True)
+        ckpt_path = os.path.join(ckpt_dir, f"{method_name}_seed{seed}_n{n_devices}.pt")
+        torch.save({
+            "online_state_dict": agent.online.state_dict(),
+            "target_state_dict": agent.target.state_dict(),
+            "method": method_name, "seed": seed, "n_devices": n_devices,
+            "episodes": episodes,
+        }, ckpt_path)
+        print(f"  Checkpoint -> {ckpt_path}")
+
     return path
 
 
@@ -115,9 +129,13 @@ def main():
     p.add_argument("--devices",   type=int,  default=1000)
     p.add_argument("--max_steps", type=int,  default=200)
     p.add_argument("--out_dir",   type=str,  default="../results")
+    p.add_argument("--device",    type=str,  default=None,
+                   help="Force device: cpu, mps, cuda (default: auto-detect)")
     args = p.parse_args()
 
-    if torch.cuda.is_available():
+    if args.device:
+        device = torch.device(args.device)
+    elif torch.cuda.is_available():
         device = torch.device("cuda")
     elif torch.backends.mps.is_available():
         device = torch.device("mps")
