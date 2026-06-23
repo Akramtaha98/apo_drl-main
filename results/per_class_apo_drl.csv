@@ -1,0 +1,5 @@
+class,name,max_latency_ms,qos_sat_pct,mean_latency_ms,p99_latency_ms
+0,Environmental,10000,92.92,7.17,1.01
+1,Infrastructure,1000,64.32,74.99,1505.36
+2,Public Safety,10,27.81,56.79,100.0
+3,Transportation/URLLC,1,0.0,10.0,10.0
